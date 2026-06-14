@@ -1,0 +1,17 @@
+// wasm — JS の再接続スケジューラから呼ぶ。数値のみ(Float 授受、RawPtr 不要)。
+import self as rc
+import float
+import int
+
+@export(wasm, "delay_ms")
+fn delay_ms(attempt: Float) -> Float = int.to_float(rc.delay_ms(float.to_int(attempt)))
+
+@export(wasm, "delay_jittered_ms")
+fn delay_jittered_ms(attempt: Float, rand01: Float) -> Float =
+  int.to_float(rc.delay_jittered_ms(float.to_int(attempt), rand01))
+
+effect fn main() -> Unit = {
+  let _a = delay_ms(0.0)
+  let _b = delay_jittered_ms(0.0, 0.5)
+  ()
+}

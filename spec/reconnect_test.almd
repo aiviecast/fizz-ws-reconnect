@@ -1,0 +1,21 @@
+import self as rc
+test "exponential backoff: base * 2^attempt" {
+  assert_eq(rc.delay_ms(0), 500)     // 500 * 1
+  assert_eq(rc.delay_ms(1), 1000)    // 500 * 2
+  assert_eq(rc.delay_ms(2), 2000)
+  assert_eq(rc.delay_ms(3), 4000)
+}
+test "capped at cap_ms" {
+  assert_eq(rc.delay_ms(6), 30000)   // 500*64=32000 > 30000 → cap
+  assert_eq(rc.delay_ms(10), 30000)
+  assert_eq(rc.cap_ms(), 30000)
+  assert_eq(rc.base_ms(), 500)
+}
+test "negative attempt clamps to 0" {
+  assert_eq(rc.delay_ms(0 - 1), 500)
+}
+test "equal jitter: rand01=0 → delay/2, rand01 near 1 → near delay" {
+  assert_eq(rc.delay_jittered_ms(1, 0.0), 500)        // 1000/2
+  assert_eq(rc.delay_jittered_ms(1, 0.999), 999)      // ~ 500 + 499
+  assert(rc.delay_jittered_ms(2, 0.5) == 1500)        // 2000/2 + 0.5*1000
+}

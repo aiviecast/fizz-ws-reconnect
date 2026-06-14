@@ -1,0 +1,4 @@
+[package]
+name = "fizz_ws_reconnect"
+version = "0.1.0"
+description = "Fizz WS reconnect — exponential backoff with cap + equal jitter for auto-reconnect delay. One Almide core, native + wasm."

@@ -1,0 +1,43 @@
+// fizz_ws_reconnect — WS 自動再接続のバックオフ遅延計算(§7 Hub)。
+//
+// 責務 (一行): 再接続の試行回数から、次に待つべき遅延(ms)を計算する。
+//
+// openaituber wsClient.ts は現状「固定 1500ms」で再試行している。サーバ復帰時に
+// 全クライアントが同時殺到する(thundering herd)のを避けるため、指数バックオフ +
+// 上限 + equal jitter に改良したのがこの部品。setTimeout / WebSocket は JS の I/O、
+// 遅延の計算ポリシーは純粋なので Almide に集約。
+//
+// delay(attempt) = min(base * 2^attempt, cap)   (attempt は 0 始まり)
+// equal jitter:  half + rand01 * half           (half = delay/2)
+//   → 実際の待ち時間は [delay/2, delay] に散らばり、同時再接続が分散する。
+
+import int
+import float
+
+let BASE_MS = 500      // 初回バックオフ
+let CAP_MS = 30000     // 上限 30s
+let LEGACY_FIXED_MS = 1500   // 旧実装の固定値 (参考)
+
+fn base_ms() -> Int = BASE_MS
+fn cap_ms() -> Int = CAP_MS
+
+// 基本の指数バックオフ遅延 (jitter 無し)。base * 2^attempt を cap で頭打ち。
+// 整数の倍々で計算 (float の math.pow を避け、精度問題も無くす)。
+fn delay_ms(attempt: Int) -> Int = {
+  var d = BASE_MS
+  var i = 0
+  while i < attempt and d < CAP_MS {
+    d = d * 2
+    i = i + 1
+  }
+  if d > CAP_MS then CAP_MS else d
+}
+
+// equal jitter 適用後の遅延。rand01 は呼び出し側が渡す [0,1) の乱数
+// (Almide に非決定乱数は無いため外から注入)。結果は [delay/2, delay]。
+fn delay_jittered_ms(attempt: Int, rand01: Float) -> Int = {
+  let d = delay_ms(attempt)
+  let half = d / 2
+  half + float.to_int(rand01 * int.to_float(half))
+}
+

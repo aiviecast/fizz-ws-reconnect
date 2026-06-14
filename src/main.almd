@@ -1,0 +1,19 @@
+// CLI (native) — 試行 0..6 の指数バックオフ遅延を出す。
+import self as rc
+import json
+import value
+import int
+
+local fn row(a: Int) -> Value = value.object([
+  ("attempt", value.int(a)),
+  ("delay_ms", value.int(rc.delay_ms(a))),
+  ("jittered_half", value.int(rc.delay_jittered_ms(a, 0.0))),   // rand01=0 → delay/2
+])
+
+effect fn main() -> Unit = {
+  var a = 0
+  while a <= 7 {
+    println(json.stringify(row(a)))
+    a = a + 1
+  }
+}
