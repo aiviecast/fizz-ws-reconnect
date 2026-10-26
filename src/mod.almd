@@ -38,6 +38,6 @@ fn delay_ms(attempt: Int) -> Int = {
 fn delay_jittered_ms(attempt: Int, rand01: Float) -> Int = {
   let d = delay_ms(attempt)
   let half = d / 2
-  half + float.to_int(rand01 * int.to_float(half))
+  half + int.from_saturating(rand01 * float.from(half))
 }
 

@@ -4,11 +4,11 @@ import float
 import int
 
 @export(wasm, "delay_ms")
-fn delay_ms(attempt: Float) -> Float = int.to_float(rc.delay_ms(float.to_int(attempt)))
+fn delay_ms(attempt: Float) -> Float = float.from(rc.delay_ms(int.from_saturating(attempt)))
 
 @export(wasm, "delay_jittered_ms")
 fn delay_jittered_ms(attempt: Float, rand01: Float) -> Float =
-  int.to_float(rc.delay_jittered_ms(float.to_int(attempt), rand01))
+  float.from(rc.delay_jittered_ms(int.from_saturating(attempt), rand01))
 
 effect fn main() -> Unit = {
   let _a = delay_ms(0.0)
